@@ -1,2 +1,4 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<div class="space-y-8">
+    <h1 class="text-2xl font-bold text-amber-400">Welcome to Game Dashboard</h1>
+    <p class="text-gray-400">Your player dashboard and store.</p>
+</div>

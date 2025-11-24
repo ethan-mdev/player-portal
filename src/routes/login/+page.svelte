@@ -15,15 +15,15 @@
 </script>
 
 <svelte:head>
-    <title>{isLogin ? 'Login' : 'Register'} - Game Forum</title>
+    <title>{isLogin ? 'Login' : 'Register'} - Game Dashboard</title>
 </svelte:head>
 
 <main class="min-h-screen bg-neutral-900 text-gray-100 flex items-center justify-center px-4">
     <div class="w-full max-w-md">
         <!-- Header -->
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-amber-400 mb-2">Game Forum</h1>
-            <p class="text-gray-400">Welcome to our community discussion boards</p>
+            <h1 class="text-3xl font-bold text-amber-400 mb-2">Game Dashboard</h1>
+            <p class="text-gray-400">Player dashboard and store</p>
         </div>
 
         <!-- Main Form Card -->
@@ -112,19 +112,6 @@
                     </button>
                 </form>
             </div>
-        </div>
-
-        <!-- Back to Forum Link -->
-        <div class="mt-6 text-center">
-            <a
-                href="/"
-                class="text-sm text-gray-400 hover:text-amber-400 transition flex items-center justify-center gap-2"
-            >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
-                </svg>
-                Back to Forum
-            </a>
         </div>
     </div>
 </main>

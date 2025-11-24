@@ -11,7 +11,8 @@ db.exec(`
         username TEXT UNIQUE NOT NULL,
         password_hash TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        profile_image TEXT
+        profile_image TEXT,
+        account_balance NUMERIC DEFAULT 0
     );
 
     CREATE TABLE IF NOT EXISTS sessions (
@@ -31,6 +32,7 @@ export type DbUser = {
     password_hash: string;
     created_at: string;
     profile_image: string | null;
+    account_balance: number;
 };
 
 export type DbSession = {
@@ -116,7 +118,8 @@ export function getUserWithSession(sessionId: string): { session: DbSession; use
         username: row.username,
         password_hash: row.password_hash,
         created_at: row.created_at,
-        profile_image: row.profile_image
+        profile_image: row.profile_image,
+        account_balance: row.account_balance
     };
 
     return { session, user };
