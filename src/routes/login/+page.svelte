@@ -22,7 +22,7 @@
     <div class="w-full max-w-md">
         <!-- Header -->
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-amber-400 mb-2">Game Dashboard</h1>
+            <h1 class="text-3xl font-bold text-amber-400 mb-2">Dashboard</h1>
             <p class="text-gray-400">Player dashboard and store</p>
         </div>
 
@@ -75,7 +75,7 @@
                         label={isLogin ? "Username" : "Email Address"}
                         placeholder={isLogin ? "Enter your username" : "Enter your email"}
                         required={true}
-                        value={form?.[isLogin ? "username" : "email"] ?? ''}
+                        value={(form as any)?.[isLogin ? "username" : "email"] ?? ''}
                     />
 
                     {#if !isLogin}
@@ -86,7 +86,7 @@
                             label="Username"
                             placeholder="Choose a username"
                             required={true}
-                            value={form?.username ?? ''}
+                            value={(form as any)?.username ?? ''}
                         />
                     {/if}
 
@@ -115,5 +115,7 @@
         </div>
     </div>
 </main>
+
+
 
 

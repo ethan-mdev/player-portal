@@ -1,4 +1,21 @@
 
+<script lang="ts">
+  let { onPanelChange = () => {} } = $props();
+  let activePanel = $state('account');
+  
+  const navItems = [
+    { id: 'account', label: 'Account' },
+    { id: 'store', label: 'Store' },
+    { id: 'vote', label: 'Vote' },
+    { id: 'purchase', label: 'Purchase Credits' }
+  ];
+  
+  function selectPanel(panelId: string) {
+    activePanel = panelId;
+    onPanelChange(panelId);
+  }
+</script>
+
 <!-- Mobile Hamburger Button -->
 <button
   id="mobile-menu-toggle"
@@ -44,42 +61,24 @@
 
   <!-- Nav -->
   <nav class="flex-1 p-4 space-y-2">
-    <button
-      data-panel="account"
-      aria-current="page"
-      class="nav-btn w-full flex items-center gap-2 rounded-lg px-4 py-2 font-semibold
-         bg-amber-500 text-white hover:bg-amber-400 transition-colors"
-    >
-      Account
-    </button>
-    <button
-      data-panel="store"
-      class="nav-btn w-full flex items-center gap-2 rounded-lg px-4 py-2 font-semibold
-         text-gray-300 hover:bg-neutral-700 transition-colors"
-    >
-      Store
-    </button>
-    <button
-      data-panel="vote"
-      class="nav-btn w-full flex items-center gap-2 rounded-lg px-4 py-2 font-semibold
-         text-gray-300 hover:bg-neutral-700 transition-colors"
-    >
-      Vote
-    </button>
-
-    <button
-      data-panel="purchase"
-      class="nav-btn w-full flex items-center gap-2 rounded-lg px-4 py-2 font-semibold
-         text-gray-300 hover:bg-neutral-700 transition-colors"
-    >
-      Purchase Credits
-    </button>
+    {#each navItems as item}
+      <button
+        onclick={() => selectPanel(item.id)}
+        data-panel={item.id}
+        class="nav-btn w-full flex items-center gap-2 rounded-lg px-4 py-2 font-semibold transition-colors {
+          activePanel === item.id 
+            ? 'bg-amber-500 text-white hover:bg-amber-400' 
+            : 'text-gray-300 hover:bg-neutral-700'
+        }"
+      >
+        {item.label}
+      </button>
+    {/each}
   </nav>
 
   <!-- Sign Out Button -->
   <div class="p-4 border-t border-neutral-700">
     <button
-      id="sign-out-btn"
       class="w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2 font-semibold
          text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors border border-red-500/30"
     >

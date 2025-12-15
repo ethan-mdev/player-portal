@@ -1,10 +1,13 @@
-import type { AuthenticatedUser } from '$lib/server/auth';
-
 declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-			user: AuthenticatedUser | null;
+			user?: {
+				id: string;
+				username: string;
+				role: string;
+				profile_image: string | null;
+			};
 		}
 		// interface PageData {}
 		// interface PageState {}
