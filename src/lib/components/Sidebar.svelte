@@ -53,9 +53,13 @@
      md:translate-x-0"
 >
   <!-- Logo -->
-  <div class="p-6 border-b border-neutral-700">
+  <div class="p-6 border-neutral-700 w-28 mx-auto">
     <a href="/" class="block">
-      <img src="/logo.png" alt="Game logo" class="w-28 mx-auto hover:opacity-80 transition-opacity" />
+      <img
+        src="/images/logo.png"
+        alt="Logo"
+        class="w-full h-auto"
+      />
     </a>
   </div>
 

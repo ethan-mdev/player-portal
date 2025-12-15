@@ -21,9 +21,15 @@
 		<span class="text-sm text-gray-400">
 			Welcome, <span class="text-sky-400">{user.username}</span>
 		</span>
-		<span class="px-2 py-0.5 bg-slate-500/20 text-slate-300 text-xs font-semibold rounded">
-			MEMBER
-		</span>
+		{#if user.role === 'admin'}
+			<span class="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-xs font-semibold rounded">
+				ADMIN
+			</span>
+		{:else}
+			<span class="px-2 py-0.5 bg-slate-500/20 text-slate-300 text-xs font-semibold rounded">
+				MEMBER
+			</span>
+		{/if}
 		<button
 			onclick={openProfileModal}
 			class="w-8 h-8 rounded-full border border-neutral-700 hover:border-amber-500 transition-colors overflow-hidden"
