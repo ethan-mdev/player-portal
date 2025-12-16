@@ -59,10 +59,6 @@ export async function getAllStoreItems(): Promise<Array<DbStoreItem>> {
     return result.rows as Array<DbStoreItem>;
 }
 
-export async function getStoreItemsByType(type: string): Promise<Array<DbStoreItem>> {
-    const result = await pool.query(`SELECT * FROM dashboard.items WHERE type = $1`, [type]);
-    return result.rows as Array<DbStoreItem>;
-}
 
 // --- Character-related functions ---
 export async function getCharactersByUserId(userId: string): Promise<Array<DbCharacter>> {

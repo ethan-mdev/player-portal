@@ -3,6 +3,20 @@
 	import type { DbCharacter } from '$lib/server/db';
 
 	let { user, characters }: { user: AuthUser; characters: DbCharacter[] } = $props();
+
+	function formatGold(amount: number): string {
+		if (amount >= 1000000) {
+			return (amount / 1000000).toFixed(1) + 'M';
+		} else if (amount >= 1000) {
+			return (amount / 1000).toFixed(1) + 'K';
+		}
+		return amount.toLocaleString();
+	}
+
+	function handleUnstuck(characterName: string) {
+		// Game specific logic to unstuck the character
+		console.log('Unstuck clicked for:', characterName);
+	}
 </script>
 
 <section class="space-y-6">
@@ -12,9 +26,25 @@
 		{#if characters.length > 0}
 			{#each characters as character}
 				<div
-					class="rounded-xl bg-neutral-900/80 ring-1 ring-neutral-800 p-5 shadow-[0_0_25px_rgba(251,191,36,0.12)]"
+					class="rounded-xl bg-neutral-900/80 ring-1 ring-neutral-800 p-5"
 				>
 					<h3 class="font-semibold text-gray-200">{character.name}</h3>
+					<ul class="mt-1 text-sm text-gray-400 space-y-1">
+						<li class="flex items-center gap-2">
+							<span class="w-2 h-2 rounded-full bg-amber-500"></span>
+							Lv. {character.level} {character.class}
+						</li>
+						<li class="flex items-center gap-2">
+							<span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+							Wealth: {character.gold > 0 ? formatGold(character.gold) : 'None'}
+						</li>
+					</ul>
+					<button
+						class="mt-4 w-full rounded-md bg-amber-500 hover:bg-amber-400 px-4 py-2 font-semibold text-white transition-colors"
+						onclick={() => handleUnstuck(character.name)}
+					>
+						Unstuck
+					</button>
 				</div>
 			{/each}
 		{:else}

@@ -2,7 +2,6 @@
 	import { getContext } from 'svelte';
 	import AccountPanel from '$lib/components/panels/AccountPanel.svelte';
 	import StorePanel from '$lib/components/panels/StorePanel.svelte';
-	import VotePanel from '$lib/components/panels/VotePanel.svelte';
 	import PurchasePanel from '$lib/components/panels/PurchasePanel.svelte';
 	
 	let { data } = $props();
@@ -17,9 +16,7 @@
 		{#if currentPanel === 'account'}
 			<AccountPanel user={data.user} characters={data.user.characters} />
 		{:else if currentPanel === 'store'}
-			<StorePanel user={data.user} store_items={data.store_items} />
-		{:else if currentPanel === 'vote'}
-			<VotePanel />
+			<StorePanel balance={data.balance} store_items={data.store_items} />
 		{:else if currentPanel === 'purchase'}
 			<PurchasePanel balance={data.balance} purchaseHistory={data.purchase_history} />
 		{/if}

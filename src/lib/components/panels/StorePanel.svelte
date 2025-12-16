@@ -1,9 +1,16 @@
 <script lang="ts">
-	import type { AuthUser } from '$lib/server/auth';
 	import type { DbStoreItem } from '$lib/server/db';
 
-    let { user, store_items }: { user: AuthUser & { balance?: number | null }; store_items: Array<DbStoreItem> } = $props();
-        
+	let { balance = 0, store_items }: { balance: number; store_items: Array<DbStoreItem> } = $props();
+
+	let activeFilter = $state('all');
+
+	let filteredItems = $derived(
+		activeFilter === 'all'
+			? store_items
+			: store_items.filter((item) => item.type === activeFilter)
+	);
+
 	const filterButtons = [
 		{ label: 'All Items', value: 'all' },
 		{ label: 'Costumes', value: 'costumes' },
@@ -17,36 +24,48 @@
 		<h2 class="text-xl font-bold">Store</h2>
 		<div class="bg-neutral-800/50 px-4 py-2 rounded-lg border border-neutral-700">
 			<span class="text-sm text-gray-400">Balance: </span>
-			<span class="text-amber-400 font-semibold">{user.balance ?? 0} Coins</span>
+			<span class="text-amber-400 font-semibold">{balance.toLocaleString()} Coins</span>
 		</div>
 	</div>
 	<div class="flex flex-wrap gap-2 mb-6 p-4 bg-neutral-900/50 rounded-lg border border-neutral-700">
 		{#each filterButtons as button}
 			<button
 				type="button"
-				class="px-4 py-2 bg-neutral-800/50 rounded-lg border border-neutral-700 text-sm text-gray-300 hover:bg-neutral-700 transition"
-                data-filter="{button.value}"
+				class="px-4 py-2 rounded-lg border text-sm transition {activeFilter === button.value
+					? 'bg-amber-500 border-amber-500 text-white'
+					: 'bg-neutral-800/50 border-neutral-700 text-gray-300 hover:bg-neutral-700'}"
+				onclick={() => (activeFilter = button.value)}
 			>
 				{button.label}
 			</button>
 		{/each}
 	</div>
-	{#if store_items.length === 0}
-    <div class="text-center py-8">
-        <span class="text-gray-400">No items available in the store.</span>
-    </div>
+	{#if filteredItems.length === 0}
+		<div class="text-center py-8">
+			<span class="text-gray-400">No items available in this category.</span>
+		</div>
 	{:else}
 		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-			{#each store_items as item}
-				<div class="bg-neutral-900/50 rounded-lg border border-neutral-700 p-4">
-					<img src={`/assets/${item.image}`} alt="{item.name}" class="w-full h-32 object-cover rounded-lg mb-4" />
+			{#each filteredItems as item}
+				{@const canAfford = balance >= item.price}
+				<div class="flex flex-col bg-neutral-900/50 rounded-lg border border-neutral-800 p-4">
+					<div class="w-full h-32 bg-neutral-800 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+						<img 
+							src={`https://placehold.co/300x200/262626/a3a3a3?text=${encodeURIComponent(item.name)}`} 
+							alt={item.name} 
+							class="w-full h-full object-cover" 
+						/>
+					</div>
 					<h3 class="text-lg font-bold mb-2">{item.name}</h3>
-					<p class="text-gray-400 mb-4">{item.description}</p>
-					<div class="flex items-center justify-between">
-						<span class="text-amber-400 font-semibold">{item.price} Coins</span>
+					<p class="text-gray-400 text-sm mb-4 grow">{item.description}</p>
+					<div class="flex items-center justify-between mt-auto">
+						<span class="text-amber-400 font-semibold">{item.price.toLocaleString()} Coins</span>
 						<button
 							type="button"
-							class="px-4 py-2 bg-amber-400 text-white rounded-lg hover:bg-amber-500 transition"
+							disabled={!canAfford}
+							class="px-4 py-2 rounded-lg transition {canAfford
+								? 'bg-amber-500 hover:bg-amber-400 text-white'
+								: 'bg-neutral-700 text-gray-500 cursor-not-allowed'}"
 						>
 							Buy
 						</button>
@@ -54,5 +73,5 @@
 				</div>
 			{/each}
 		</div>
-    {/if}
+	{/if}
 </section>

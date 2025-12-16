@@ -2,24 +2,34 @@
 <script lang="ts">
   let { onPanelChange = () => {} } = $props();
   let activePanel = $state('account');
+  let mobileMenuOpen = $state(false);
   
   const navItems = [
     { id: 'account', label: 'Account' },
     { id: 'store', label: 'Store' },
-    { id: 'vote', label: 'Vote' },
     { id: 'purchase', label: 'Purchase Credits' }
   ];
   
   function selectPanel(panelId: string) {
     activePanel = panelId;
     onPanelChange(panelId);
+    mobileMenuOpen = false;
+  }
+
+  function toggleMobileMenu() {
+    mobileMenuOpen = !mobileMenuOpen;
+  }
+
+  function closeMobileMenu() {
+    mobileMenuOpen = false;
   }
 </script>
 
 <!-- Mobile Hamburger Button -->
 <button
-  id="mobile-menu-toggle"
+  onclick={toggleMobileMenu}
   aria-label="Toggle mobile menu"
+  aria-expanded={mobileMenuOpen}
   class="fixed top-4 left-4 z-50 md:hidden p-2 rounded-lg bg-neutral-800/80 backdrop-blur
      border border-neutral-700 text-gray-300 hover:text-white transition-colors"
 >
@@ -29,36 +39,45 @@
     stroke="currentColor"
     viewBox="0 0 24 24"
   >
-    <path
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="2"
-      d="M4 6h16M4 12h16M4 18h16"></path>
+    {#if mobileMenuOpen}
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M6 18L18 6M6 6l12 12"></path>
+    {:else}
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M4 6h16M4 12h16M4 18h16"></path>
+    {/if}
   </svg>
 </button>
 
 <!-- Mobile Overlay -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-  id="mobile-overlay"
-  class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm hidden md:hidden"
+  onclick={closeMobileMenu}
+  class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden transition-opacity duration-300 {mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}"
 >
 </div>
 
 <!-- Fixed Sidebar -->
 <aside
-  id="sidebar"
   class="fixed inset-y-0 left-0 w-64 bg-neutral-800/80 backdrop-blur
      border-r border-neutral-700 flex flex-col z-40
-     transform -translate-x-full transition-transform duration-300 ease-in-out
-     md:translate-x-0"
+     transform transition-transform duration-300 ease-in-out
+     {mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0"
 >
   <!-- Logo -->
-  <div class="p-6 border-neutral-700 w-28 mx-auto">
+  <div class="p-6 border-neutral-700">
     <a href="/" class="block">
       <img
-        src="/images/logo.png"
+        src="/logo.png"
         alt="Logo"
-        class="w-full h-auto"
+        class="w-28 h-auto mx-auto"
       />
     </a>
   </div>
