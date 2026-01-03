@@ -1,22 +1,38 @@
 import pg from 'pg';
+import sql from 'mssql';
+import { 
+    DATABASE_URL, 
+    GAME_ACCOUNT_DB_URL,
+    GAME_CHARACTER_DB_URL
+} from '$env/static/private';
+
 const { Pool } = pg;
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgres://postgres:password@localhost:5432/postgres'
+// PostgreSQL (auth/forum)
+const pgPool = new Pool({
+    connectionString: DATABASE_URL || 'postgres://postgres:password@localhost:5432/postgres'
 });
 
-pool.on('connect', (client) => {
+pgPool.on('connect', (client) => {
     client.query('SET search_path TO forum, public');
 });
 
-export type DbCharacter = {
-    id: string;
-    name: string;
-    level: number;
-    class: string;
-    gold: number;
-    created_at: string;
-};
+let accountPool: sql.ConnectionPool | null = null;
+let characterPool: sql.ConnectionPool | null = null;
+
+async function getAccountDb(): Promise<sql.ConnectionPool> {
+    if (!accountPool) {
+        accountPool = await sql.connect(GAME_ACCOUNT_DB_URL);
+    }
+    return accountPool;
+}
+
+async function getCharacterDb(): Promise<sql.ConnectionPool> {
+    if (!characterPool) {
+        characterPool = await sql.connect(GAME_CHARACTER_DB_URL);
+    }
+    return characterPool;
+}
 
 export type DbStoreItem = {
     id: string;
@@ -37,13 +53,13 @@ export type DbCreditPurchase = {
 
 // --- User-related functions ---
 export async function getUserBalance(userId: string): Promise<number> {
-    const result = await pool.query(`SELECT balance FROM public.users WHERE id = $1`, [userId]);
+    const result = await pgPool.query(`SELECT balance FROM public.users WHERE id = $1`, [userId]);
     return result.rows[0]?.balance ?? 0;
 }
 
 // --- Credit purchase functions ---
 export async function getCreditPurchasesByUserId(userId: string): Promise<Array<DbCreditPurchase>> {
-    const result = await pool.query(
+    const result = await pgPool.query(
         `SELECT id, credits, amount_paid, status, purchased_at 
          FROM dashboard.credit_purchases 
          WHERE user_id = $1 
@@ -55,13 +71,6 @@ export async function getCreditPurchasesByUserId(userId: string): Promise<Array<
 
 // --- Store-related functions ---
 export async function getAllStoreItems(): Promise<Array<DbStoreItem>> {
-    const result = await pool.query(`SELECT * FROM dashboard.items`);
+    const result = await pgPool.query(`SELECT * FROM dashboard.items`);
     return result.rows as Array<DbStoreItem>;
-}
-
-
-// --- Character-related functions ---
-export async function getCharactersByUserId(userId: string): Promise<Array<DbCharacter>> {
-    const result = await pool.query(`SELECT * FROM dashboard.characters WHERE user_id = $1`, [userId]);
-    return result.rows as Array<DbCharacter>;
 }

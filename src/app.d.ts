@@ -7,7 +7,9 @@ declare global {
 				username: string;
 				role: string;
 				profile_image: string | null;
+				access_token: string;
 			};
+
 		}
 		// interface PageData {}
 		// interface PageState {}

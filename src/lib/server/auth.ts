@@ -1,6 +1,7 @@
 import * as jose from 'jose';
+import { AUTH_SERVER_URL } from '$env/static/private';
 
-const AUTH_SERVER = process.env.AUTH_SERVER_URL || 'http://localhost:8080';
+const AUTH_SERVER = AUTH_SERVER_URL || 'http://localhost:8080';
 
 // Cache JWKS for performance
 let jwks: jose.JWTVerifyGetKey | null = null;
@@ -22,6 +23,15 @@ export type TokenPair = {
     access_token: string;
     refresh_token: string;
     expires_in: number;
+};
+
+export type Character = {
+    charNo: number;
+    name: string;
+    level: number;
+    playtime: number;
+    money: number;
+    classId: number;
 };
 
 // Validate JWT and return user info
@@ -113,4 +123,16 @@ export async function updateUserProfile(accessToken: string, profileImage: strin
     } catch {
         return false;
     }
+}
+
+export async function getCharacters(accessToken: string): Promise<Character[]> {
+    const res = await fetch(`${AUTH_SERVER}/game/characters`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+
+    if (!res.ok) {
+        return [];
+    }
+
+    return res.json();
 }

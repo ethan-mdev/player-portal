@@ -1,5 +1,6 @@
-import { getUserProfile } from '$lib/server/auth';
-import { getAllStoreItems, getCharactersByUserId, getUserBalance, getCreditPurchasesByUserId } from '$lib/server/db';
+import { getUserProfile, getCharacters } from '$lib/server/auth';
+import { getAllStoreItems, getUserBalance, getCreditPurchasesByUserId } from '$lib/server/db';
+
 
 export const load = async ({ locals }) => {
     if (!locals.user) {
@@ -7,7 +8,7 @@ export const load = async ({ locals }) => {
     }
     
     const profile = await getUserProfile(locals.user.id);
-    const characters = await getCharactersByUserId(locals.user.id);
+    const characters = await getCharacters(locals.user.access_token);
     const store_items = await getAllStoreItems();
     const balance = await getUserBalance(locals.user.id);
     const purchase_history = await getCreditPurchasesByUserId(locals.user.id);

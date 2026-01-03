@@ -1,8 +1,7 @@
 <script lang="ts">
-	import type { AuthUser } from '$lib/server/auth';
-	import type { DbCharacter } from '$lib/server/db';
+	import type { AuthUser, Character } from '$lib/server/auth';
 
-	let { user, characters }: { user: AuthUser; characters: DbCharacter[] } = $props();
+	let { user, characters }: { user: AuthUser; characters: Character[] } = $props();
 
 	function formatGold(amount: number): string {
 		if (amount >= 1000000) {
@@ -32,11 +31,11 @@
 					<ul class="mt-1 text-sm text-gray-400 space-y-1">
 						<li class="flex items-center gap-2">
 							<span class="w-2 h-2 rounded-full bg-amber-500"></span>
-							Lv. {character.level} {character.class}
+							Lv. {character.level} {character.classId}
 						</li>
 						<li class="flex items-center gap-2">
 							<span class="w-2 h-2 rounded-full bg-yellow-500"></span>
-							Wealth: {character.gold > 0 ? formatGold(character.gold) : 'None'}
+							Wealth: {character.money > 0 ? formatGold(character.money) : 'None'}
 						</li>
 					</ul>
 					<button
