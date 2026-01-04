@@ -136,3 +136,5 @@ export async function getCharacters(accessToken: string): Promise<Character[]> {
 
     return res.json();
 }
+
+export async function unstuckCharacter(accessToken, 

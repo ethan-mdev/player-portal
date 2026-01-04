@@ -1,10 +1,5 @@
 import pg from 'pg';
-import sql from 'mssql';
-import { 
-    DATABASE_URL, 
-    GAME_ACCOUNT_DB_URL,
-    GAME_CHARACTER_DB_URL
-} from '$env/static/private';
+import { DATABASE_URL } from '$env/static/private';
 
 const { Pool } = pg;
 
@@ -16,23 +11,6 @@ const pgPool = new Pool({
 pgPool.on('connect', (client) => {
     client.query('SET search_path TO forum, public');
 });
-
-let accountPool: sql.ConnectionPool | null = null;
-let characterPool: sql.ConnectionPool | null = null;
-
-async function getAccountDb(): Promise<sql.ConnectionPool> {
-    if (!accountPool) {
-        accountPool = await sql.connect(GAME_ACCOUNT_DB_URL);
-    }
-    return accountPool;
-}
-
-async function getCharacterDb(): Promise<sql.ConnectionPool> {
-    if (!characterPool) {
-        characterPool = await sql.connect(GAME_CHARACTER_DB_URL);
-    }
-    return characterPool;
-}
 
 export type DbStoreItem = {
     id: string;

@@ -4,12 +4,49 @@
 	let { user, characters }: { user: AuthUser; characters: Character[] } = $props();
 
 	function formatGold(amount: number): string {
-		if (amount >= 1000000) {
-			return (amount / 1000000).toFixed(1) + 'M';
-		} else if (amount >= 1000) {
-			return (amount / 1000).toFixed(1) + 'K';
-		}
-		return amount.toLocaleString();
+		const gems = Math.floor(amount / 100000000);
+		const gold = Math.floor((amount % 100000000) / 1000000);
+		const silver = Math.floor((amount % 1000000) / 1000);
+		const copper = amount % 1000;
+		let parts = [];
+		if (gems) parts.push(`${gems} gem${gems > 1 ? 's' : ''}`);
+		if (gold) parts.push(`${gold} gold`);
+		if (silver) parts.push(`${silver} silver`);
+		if (copper) parts.push(`${copper} copper`);
+		return parts.join(' ');
+	}
+
+	function formatClass(classId: number): string {
+		const classes: Record<number, string> = {
+			1: 'Fighter',
+			2: 'Clever Fighter',
+			3: 'Warrior',
+			4: 'Gladiator',
+			5: 'Knight',
+			6: 'Cleric',
+			7: 'High Cleric',
+			8: 'Paladin',
+			9: 'Holy Knight',
+			10: 'Guardian',
+			11: 'Archer',
+			12: 'Hawk Archer',
+			13: 'Scout',
+			14: 'Sharp Shooter',
+			15: 'Ranger',
+			16: 'Mage',
+			17: 'Wiz Mage',
+			18: 'Enchanter',
+			19: 'Warlock',
+			20: 'Wizard',
+			21: 'Trickster',
+			22: 'Gambit',
+			23: 'Renegade',
+			24: 'Spectre',
+			25: 'Reaper',
+			26: 'Crusader',
+			27: 'Templar'
+		};
+		return classes[classId] || 'Unknown';
 	}
 
 	function handleUnstuck(characterName: string) {
@@ -24,14 +61,13 @@
 	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 		{#if characters.length > 0}
 			{#each characters as character}
-				<div
-					class="rounded-xl bg-neutral-900/80 ring-1 ring-neutral-800 p-5"
-				>
+				<div class="rounded-xl bg-neutral-900/80 ring-1 ring-neutral-800 p-5">
 					<h3 class="font-semibold text-gray-200">{character.name}</h3>
 					<ul class="mt-1 text-sm text-gray-400 space-y-1">
 						<li class="flex items-center gap-2">
 							<span class="w-2 h-2 rounded-full bg-amber-500"></span>
-							Lv. {character.level} {character.classId}
+							Lv. {character.level}
+							{formatClass(character.classId)}
 						</li>
 						<li class="flex items-center gap-2">
 							<span class="w-2 h-2 rounded-full bg-yellow-500"></span>
