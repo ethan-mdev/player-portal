@@ -137,4 +137,25 @@ export async function getCharacters(accessToken: string): Promise<Character[]> {
     return res.json();
 }
 
-export async function unstuckCharacter(accessToken, 
+export async function unstuckCharacter(accessToken: string, characterName: string): Promise<{ ok: boolean; message?: string; error?: string }> {
+    try {
+        const res = await fetch(`${AUTH_SERVER}/game/unstuck`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ character_name: characterName })
+        });
+
+        if (!res.ok) {
+            const error = await res.text();
+            return { ok: false, error };
+        }
+
+        const data = await res.json();
+        return { ok: true, message: data.message };
+    } catch {
+        return { ok: false, error: 'Unstuck operation failed' };
+    }
+}

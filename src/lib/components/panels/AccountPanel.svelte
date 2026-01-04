@@ -3,6 +3,9 @@
 
 	let { user, characters }: { user: AuthUser; characters: Character[] } = $props();
 
+	let loading = $state(false);
+	let message = $state('');
+
 	function formatGold(amount: number): string {
 		const gems = Math.floor(amount / 100000000);
 		const gold = Math.floor((amount % 100000000) / 1000000);
@@ -49,9 +52,29 @@
 		return classes[classId] || 'Unknown';
 	}
 
-	function handleUnstuck(characterName: string) {
-		// Game specific logic to unstuck the character
-		console.log('Unstuck clicked for:', characterName);
+	async function handleUnstuck(characterName: string) {
+		loading = true;
+		message = '';
+
+		try {
+			const res = await fetch('/api/unstuck', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ character: characterName })
+			});
+
+			const result = await res.json();
+
+			if (result.ok) {
+				message = result.message;
+			} else {
+				message = result.error || 'Unstuck failed';
+			}
+		} catch {
+			message = 'Something went wrong';
+		} finally {
+			loading = false;
+		}
 	}
 </script>
 
@@ -77,8 +100,9 @@
 					<button
 						class="mt-4 w-full rounded-md bg-amber-500 hover:bg-amber-400 px-4 py-2 font-semibold text-white transition-colors"
 						onclick={() => handleUnstuck(character.name)}
+						disabled={loading}
 					>
-						Unstuck
+						{loading ? 'Unstucking...' : 'Unstuck'}
 					</button>
 				</div>
 			{/each}
@@ -142,4 +166,8 @@
 			</div>
 		</div>
 	</div>
+
+	{#if message}
+		<p class="text-sm text-amber-400 mt-2">{message}</p>
+	{/if}
 </section>
