@@ -1,10 +1,16 @@
 <script lang="ts">
 	import type { AuthUser, Character } from '$lib/server/auth';
+	import PopupModal from '$lib/components/PopupModal.svelte';
 
 	let { user, characters }: { user: AuthUser; characters: Character[] } = $props();
 
 	let loading = $state(false);
 	let message = $state('');
+	let showUnstuckModal = $state(false);
+	let showResultModal = $state(false);
+	let resultType = $state<'success' | 'error'>('success');
+	let resultMessage = $state('');
+	let selectedCharacter = $state('');
 
 	function formatGold(amount: number): string {
 		const gems = Math.floor(amount / 100000000);
@@ -52,26 +58,35 @@
 		return classes[classId] || 'Unknown';
 	}
 
-	async function handleUnstuck(characterName: string) {
+	function promptUnstuck(characterName: string) {
+		selectedCharacter = characterName;
+		showUnstuckModal = true;
+	}
+
+	async function handleUnstuck() {
 		loading = true;
-		message = '';
 
 		try {
 			const res = await fetch('/api/unstuck', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ character: characterName })
+				body: JSON.stringify({ character: selectedCharacter })
 			});
 
 			const result = await res.json();
 
 			if (result.ok) {
-				message = result.message;
+				resultType = 'success';
+				resultMessage = result.message;
 			} else {
-				message = result.error || 'Unstuck failed';
+				resultType = 'error';
+				resultMessage = result.error || 'Unstuck failed';
 			}
+			showResultModal = true;
 		} catch {
-			message = 'Something went wrong';
+			resultType = 'error';
+			resultMessage = 'Something went wrong';
+			showResultModal = true;
 		} finally {
 			loading = false;
 		}
@@ -99,10 +114,10 @@
 					</ul>
 					<button
 						class="mt-4 w-full rounded-md bg-amber-500 hover:bg-amber-400 px-4 py-2 font-semibold text-white transition-colors"
-						onclick={() => handleUnstuck(character.name)}
+						onclick={() => promptUnstuck(character.name)}
 						disabled={loading}
 					>
-						{loading ? 'Unstucking...' : 'Unstuck'}
+						Unstuck
 					</button>
 				</div>
 			{/each}
@@ -171,3 +186,23 @@
 		<p class="text-sm text-amber-400 mt-2">{message}</p>
 	{/if}
 </section>
+
+<!-- Confirmation Modal -->
+<PopupModal
+	bind:show={showUnstuckModal}
+	type="confirm"
+	title="Confirm Unstuck"
+	message="Are you sure you want to unstuck {selectedCharacter}? This will teleport them to a safe location. Please ensure you're logged out before proceeding."
+	confirmText="Yes, Unstuck"
+	cancelText="Cancel"
+	onConfirm={handleUnstuck}
+/>
+
+<!-- Result Modal -->
+<PopupModal
+	bind:show={showResultModal}
+	type={resultType}
+	title={resultType === 'success' ? 'Success' : 'Error'}
+	message={resultMessage}
+	confirmText="OK"
+/>
