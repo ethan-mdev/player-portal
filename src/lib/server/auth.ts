@@ -55,7 +55,7 @@ export async function login(username: string, password: string): Promise<TokenPa
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
     });
-    
+
     if (!res.ok) return null;
     return res.json();
 }
@@ -67,7 +67,7 @@ export async function register(username: string, email: string, password: string
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password }),
     });
-    
+
     if (!res.ok) {
         const errorText = await res.text();
         console.error('Registration failed:', res.status, errorText);
@@ -83,7 +83,7 @@ export async function refreshTokens(refreshToken: string): Promise<TokenPair | n
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh_token: refreshToken }),
     });
-    
+
     if (!res.ok) return null;
     return res.json();
 }
@@ -158,4 +158,34 @@ export async function unstuckCharacter(accessToken: string, characterName: strin
     } catch {
         return { ok: false, error: 'Unstuck operation failed' };
     }
+}
+
+export async function changePassword(
+	accessToken: string, 
+	oldPassword: string, 
+	newPassword: string
+): Promise<{ ok: boolean; message?: string; error?: string }> {
+	try {
+		const res = await fetch(`${AUTH_SERVER}/change-password`, {
+			method: 'POST',
+			headers: {
+				'Authorization': `Bearer ${accessToken}`,
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ 
+				old_password: oldPassword, 
+				new_password: newPassword 
+			})
+		});
+
+		if (!res.ok) {
+			const error = await res.text();
+			return { ok: false, error };
+		}
+
+		const data = await res.json();
+		return { ok: true, message: data.message };
+	} catch {
+		return { ok: false, error: 'Password change failed' };
+	}
 }

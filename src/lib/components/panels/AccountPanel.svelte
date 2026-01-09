@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { AuthUser, Character } from '$lib/server/auth';
 	import PopupModal from '$lib/components/PopupModal.svelte';
+	import FormField from '$lib/components/FormField.svelte';
 
 	let { user, characters }: { user: AuthUser; characters: Character[] } = $props();
 
@@ -8,9 +9,15 @@
 	let message = $state('');
 	let showUnstuckModal = $state(false);
 	let showResultModal = $state(false);
+	let showPasswordModal = $state(false);
 	let resultType = $state<'success' | 'error'>('success');
 	let resultMessage = $state('');
 	let selectedCharacter = $state('');
+	let oldPassword = $state('');
+	let newPassword = $state('');
+	let confirmPassword = $state('');
+	let passwordError = $state('');
+	let shouldLogoutAfterModal = $state(false);
 
 	function formatGold(amount: number): string {
 		const gems = Math.floor(amount / 100000000);
@@ -63,6 +70,14 @@
 		showUnstuckModal = true;
 	}
 
+	function promptChangePassword() {
+		oldPassword = '';
+		newPassword = '';
+		confirmPassword = '';
+		passwordError = '';
+		showPasswordModal = true;
+	}
+
 	async function handleUnstuck() {
 		loading = true;
 
@@ -87,6 +102,55 @@
 			resultType = 'error';
 			resultMessage = 'Something went wrong';
 			showResultModal = true;
+		} finally {
+			loading = false;
+		}
+	}
+
+	async function handleChangePassword() {
+		// Validate inputs
+		passwordError = '';
+		
+		if (!oldPassword || !newPassword || !confirmPassword) {
+			passwordError = 'All fields are required';
+			return;
+		}
+
+		if (newPassword.length < 6) {
+			passwordError = 'New password must be at least 6 characters';
+			return;
+		}
+
+		if (newPassword !== confirmPassword) {
+			passwordError = 'Passwords do not match';
+			return;
+		}
+
+		loading = true;
+
+		try {
+			const res = await fetch('/api/change-password', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					old_password: oldPassword,
+					new_password: newPassword
+				})
+			});
+
+			const result = await res.json();
+
+			if (res.ok) {
+				showPasswordModal = false;
+				resultType = 'success';
+				resultMessage = 'Password changed successfully. Please log in again with your new password.';
+				shouldLogoutAfterModal = true;
+				showResultModal = true;
+			} else {
+				passwordError = result.error || 'Failed to change password';
+			}
+		} catch {
+			passwordError = 'Something went wrong';
 		} finally {
 			loading = false;
 		}
@@ -153,7 +217,7 @@
 					<p class="text-sm text-gray-400">Update your account password</p>
 				</div>
 				<button
-					id="change-password-btn"
+					onclick={promptChangePassword}
 					class="rounded-md bg-amber-500 hover:bg-amber-400 px-4 py-2 font-semibold text-white text-sm transition"
 				>
 					Change
@@ -187,7 +251,7 @@
 	{/if}
 </section>
 
-<!-- Confirmation Modal -->
+<!-- Unstuck Confirmation Modal -->
 <PopupModal
 	bind:show={showUnstuckModal}
 	type="confirm"
@@ -198,6 +262,80 @@
 	onConfirm={handleUnstuck}
 />
 
+<!-- Change Password Modal -->
+{#if showPasswordModal}
+	<div 
+		class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+		onclick={(e) => e.target === e.currentTarget && (showPasswordModal = false)}
+		onkeydown={(e) => e.key === 'Escape' && (showPasswordModal = false)}
+		role="dialog"
+		aria-modal="true"
+		tabindex="-1"
+	>
+		<div class="bg-neutral-900 rounded-xl border-t-4 border-x border-b border-neutral-700 border-t-amber-500 p-6 w-full max-w-md">
+			<!-- Title -->
+			<h3 class="text-lg font-semibold mb-4 text-center">Change Password</h3>
+			
+			<!-- Form -->
+			<div class="space-y-4 mb-6">
+				<FormField
+					id="old-password"
+					name="old-password"
+					type="password"
+					label="Current Password"
+					placeholder="Enter current password"
+					bind:value={oldPassword}
+					disabled={loading}
+				/>
+
+				<FormField
+					id="new-password"
+					name="new-password"
+					type="password"
+					label="New Password"
+					placeholder="Enter new password"
+					bind:value={newPassword}
+					disabled={loading}
+				/>
+
+				<FormField
+					id="confirm-password"
+					name="confirm-password"
+					type="password"
+					label="Confirm New Password"
+					placeholder="Confirm new password"
+					bind:value={confirmPassword}
+					disabled={loading}
+				/>
+
+				{#if passwordError}
+					<p class="text-sm text-red-400">{passwordError}</p>
+				{/if}
+			</div>
+
+			<!-- Actions -->
+			<div class="flex gap-3">
+				<button
+					type="button"
+					onclick={() => (showPasswordModal = false)}
+					class="flex-1 px-4 py-2 rounded-lg border border-neutral-700 text-gray-300 hover:bg-neutral-800 transition-colors"
+					disabled={loading}
+				>
+					Cancel
+				</button>
+				<button
+					type="button"
+					onclick={handleChangePassword}
+					class="flex-1 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+					disabled={loading}
+				>
+					{loading ? 'Changing...' : 'Change Password'}
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
+
 <!-- Result Modal -->
 <PopupModal
 	bind:show={showResultModal}
@@ -205,4 +343,9 @@
 	title={resultType === 'success' ? 'Success' : 'Error'}
 	message={resultMessage}
 	confirmText="OK"
+	onClose={() => {
+		if (shouldLogoutAfterModal) {
+			window.location.href = '/logout';
+		}
+	}}
 />
