@@ -189,3 +189,31 @@ export async function changePassword(
 		return { ok: false, error: 'Password change failed' };
 	}
 }
+
+export async function purchaseItem(
+	accessToken: string,
+	itemId: number,
+	amount: number
+): Promise<{ ok: boolean; message?: string; error?: string; new_balance?: number }> {
+	try {
+		const res = await fetch(`${AUTH_SERVER}/game/purchase`, {
+			method: 'POST',
+			headers: {
+				'Authorization': `Bearer ${accessToken}`,
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ item_id: itemId, amount })
+		});
+
+		if (!res.ok) {
+			const error = await res.text();
+			return { ok: false, error };
+		}
+
+		const data = await res.json();
+		return { ok: true, message: data.message, new_balance: data.new_balance };
+	} catch {
+		return { ok: false, error: 'Purchase failed' };
+	}
+}
+

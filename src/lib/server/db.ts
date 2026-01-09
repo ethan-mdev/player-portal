@@ -13,12 +13,12 @@ pgPool.on('connect', (client) => {
 });
 
 export type DbStoreItem = {
-    id: string;
-    name: string;
-    description: string | null;
-    type: string;
-    price: number;
-    image: string;
+	id: number;
+	name: string;
+	description: string | null;
+	type: string;
+	price: number;
+	image: string;
 };
 
 export type DbCreditPurchase = {

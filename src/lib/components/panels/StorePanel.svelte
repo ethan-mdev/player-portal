@@ -1,9 +1,14 @@
 <script lang="ts">
 	import type { DbStoreItem } from '$lib/server/db';
+	import PopupModal from '$lib/components/PopupModal.svelte';
 
 	let { balance = 0, store_items }: { balance: number; store_items: Array<DbStoreItem> } = $props();
 
 	let activeFilter = $state('all');
+	let purchasingItemId = $state<number | null>(null);
+	let showResultModal = $state(false);
+	let resultType = $state<'success' | 'error'>('success');
+	let resultMessage = $state('');
 
 	let filteredItems = $derived(
 		activeFilter === 'all'
@@ -17,6 +22,36 @@
 		{ label: 'Boosts', value: 'boosts' },
 		{ label: 'Bundles', value: 'bundles' }
 	];
+
+	async function handlePurchase(itemId: number, itemName: string, price: number) {
+		purchasingItemId = itemId;
+
+		try {
+			const res = await fetch('/api/purchase', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ item_id: itemId, amount: 1 })
+			});
+
+			const result = await res.json();
+
+			if (result.ok) {
+				resultType = 'success';
+				resultMessage = `${itemName} purchased successfully!`;
+				balance = result.new_balance;
+			} else {
+				resultType = 'error';
+				resultMessage = result.error || 'Purchase failed';
+			}
+			showResultModal = true;
+		} catch {
+			resultType = 'error';
+			resultMessage = 'Something went wrong';
+			showResultModal = true;
+		} finally {
+			purchasingItemId = null;
+		}
+	}
 </script>
 
 <section class="space-y-6">
@@ -27,6 +62,7 @@
 			<span class="text-amber-400 font-semibold">{balance.toLocaleString()} Coins</span>
 		</div>
 	</div>
+
 	<div class="flex flex-wrap gap-2 mb-6 p-4 bg-neutral-900/50 rounded-lg border border-neutral-700">
 		{#each filterButtons as button}
 			<button
@@ -62,12 +98,13 @@
 						<span class="text-amber-400 font-semibold">{item.price.toLocaleString()} Coins</span>
 						<button
 							type="button"
-							disabled={!canAfford}
-							class="px-4 py-2 rounded-lg transition {canAfford
+							disabled={!canAfford || purchasingItemId === item.id}
+							onclick={() => handlePurchase(item.id, item.name, item.price)}
+							class="px-4 py-2 rounded-lg transition {canAfford && purchasingItemId !== item.id
 								? 'bg-amber-500 hover:bg-amber-400 text-white'
 								: 'bg-neutral-700 text-gray-500 cursor-not-allowed'}"
 						>
-							Buy
+							{purchasingItemId === item.id ? 'Buying...' : 'Buy'}
 						</button>
 					</div>
 				</div>
@@ -75,3 +112,12 @@
 		</div>
 	{/if}
 </section>
+
+<!-- Result Modal -->
+<PopupModal
+	bind:show={showResultModal}
+	type={resultType}
+	title={resultType === 'success' ? 'Success' : 'Error'}
+	message={resultMessage}
+	confirmText="OK"
+/>
