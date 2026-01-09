@@ -6,9 +6,11 @@
 
 	let activeFilter = $state('all');
 	let purchasingItemId = $state<number | null>(null);
+	let showConfirmModal = $state(false);
 	let showResultModal = $state(false);
 	let resultType = $state<'success' | 'error'>('success');
 	let resultMessage = $state('');
+	let selectedItem = $state<{ id: number; name: string; price: number } | null>(null);
 
 	let filteredItems = $derived(
 		activeFilter === 'all'
@@ -23,21 +25,28 @@
 		{ label: 'Bundles', value: 'bundles' }
 	];
 
-	async function handlePurchase(itemId: number, itemName: string, price: number) {
-		purchasingItemId = itemId;
+	function promptPurchase(itemId: number, itemName: string, price: number) {
+		selectedItem = { id: itemId, name: itemName, price };
+		showConfirmModal = true;
+	}
+
+	async function handlePurchase() {
+		if (!selectedItem) return;
+
+		purchasingItemId = selectedItem.id;
 
 		try {
 			const res = await fetch('/api/purchase', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ item_id: itemId, amount: 1 })
+				body: JSON.stringify({ item_id: selectedItem.id, amount: 1 })
 			});
 
 			const result = await res.json();
 
 			if (result.ok) {
 				resultType = 'success';
-				resultMessage = `${itemName} purchased successfully!`;
+				resultMessage = `${selectedItem.name} purchased successfully!`;
 				balance = result.new_balance;
 			} else {
 				resultType = 'error';
@@ -99,7 +108,7 @@
 						<button
 							type="button"
 							disabled={!canAfford || purchasingItemId === item.id}
-							onclick={() => handlePurchase(item.id, item.name, item.price)}
+							onclick={() => promptPurchase(item.id, item.name, item.price)}
 							class="px-4 py-2 rounded-lg transition {canAfford && purchasingItemId !== item.id
 								? 'bg-amber-500 hover:bg-amber-400 text-white'
 								: 'bg-neutral-700 text-gray-500 cursor-not-allowed'}"
@@ -112,6 +121,17 @@
 		</div>
 	{/if}
 </section>
+
+<!-- Purchase Confirmation Modal -->
+<PopupModal
+	bind:show={showConfirmModal}
+	type="confirm"
+	title="Confirm Purchase"
+	message="Purchase {selectedItem?.name} for {selectedItem?.price.toLocaleString()} coins?"
+	confirmText="Yes, Purchase"
+	cancelText="Cancel"
+	onConfirm={handlePurchase}
+/>
 
 <!-- Result Modal -->
 <PopupModal

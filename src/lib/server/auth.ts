@@ -217,3 +217,29 @@ export async function purchaseItem(
 	}
 }
 
+export async function redeemVoucher(
+	accessToken: string,
+	code: string
+): Promise<{ ok: boolean; message?: string; error?: string }> {
+	try {
+		const res = await fetch(`${AUTH_SERVER}/game/voucher/redeem`, {
+			method: 'POST',
+			headers: {
+				'Authorization': `Bearer ${accessToken}`,
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ code })
+		});
+
+		if (!res.ok) {
+			const error = await res.json();
+			return { ok: false, error: error.error || 'Redemption failed' };
+		}
+
+		const data = await res.json();
+		return { ok: true, message: data.message };
+	} catch {
+		return { ok: false, error: 'Redemption failed' };
+	}
+}
+

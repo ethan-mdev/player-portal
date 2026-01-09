@@ -18,6 +18,7 @@
 	let confirmPassword = $state('');
 	let passwordError = $state('');
 	let shouldLogoutAfterModal = $state(false);
+	let voucherCode = $state('');
 
 	function formatGold(amount: number): string {
 		const gems = Math.floor(amount / 100000000);
@@ -155,6 +156,43 @@
 			loading = false;
 		}
 	}
+
+	async function handleRedeemVoucher() {
+		if (!voucherCode.trim()) {
+			resultType = 'error';
+			resultMessage = 'Please enter a voucher code';
+			showResultModal = true;
+			return;
+		}
+
+		loading = true;
+
+		try {
+			const res = await fetch('/api/redeem-voucher', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ code: voucherCode })
+			});
+
+			const result = await res.json();
+
+			if (result.ok) {
+				resultType = 'success';
+				resultMessage = result.message || 'Voucher redeemed successfully!';
+				voucherCode = ''; // Clear input on success
+			} else {
+				resultType = 'error';
+				resultMessage = result.error || 'Redemption failed';
+			}
+			showResultModal = true;
+		} catch {
+			resultType = 'error';
+			resultMessage = 'Something went wrong';
+			showResultModal = true;
+		} finally {
+			loading = false;
+		}
+	}
 </script>
 
 <section class="space-y-6">
@@ -233,13 +271,17 @@
 					<input
 						type="text"
 						id="voucher-code"
+						bind:value={voucherCode}
 						placeholder="Enter voucher code..."
-						class="flex-1 rounded-md bg-neutral-800 border border-neutral-700 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+						disabled={loading}
+						class="flex-1 rounded-md bg-neutral-800 border border-neutral-700 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:opacity-50"
 					/>
 					<button
-						class="rounded-md bg-amber-500 hover:bg-amber-400 px-4 py-2 font-semibold text-white text-sm transition redeem-voucher-btn"
+						onclick={handleRedeemVoucher}
+						disabled={loading}
+						class="rounded-md bg-amber-500 hover:bg-amber-400 px-4 py-2 font-semibold text-white text-sm transition disabled:opacity-50 disabled:cursor-not-allowed redeem-voucher-btn"
 					>
-						Redeem
+						{loading ? 'Redeeming...' : 'Redeem'}
 					</button>
 				</div>
 			</div>
