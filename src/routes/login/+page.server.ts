@@ -10,10 +10,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-    login: async ({ request, cookies }) => {
+    login: async ({ request, cookies, url }) => {
         const data = await request.formData();
         const username = String(data.get('username') || '').trim();
         const password = String(data.get('password') || '');
+        const verifyToken = url.searchParams.get('verify_token');
 
         if (!username || !password) {
             return fail(400, { error: 'Username and password are required' });
@@ -39,14 +40,20 @@ export const actions: Actions = {
             maxAge: 60 * 60 * 24 * 7
         });
 
+        // If verify token present, redirect to verification
+        if (verifyToken) {
+            throw redirect(303, `/verify?token=${verifyToken}`);
+        }
+
         throw redirect(303, '/');
     },
 
-    register: async ({ request, cookies }) => {
+    register: async ({ request, cookies, url }) => {
         const data = await request.formData();
         const username = String(data.get('username') || '').trim();
         const email = String(data.get('email') || '').trim();
         const password = String(data.get('password') || '');
+        const verifyToken = url.searchParams.get('verify_token');
 
         if (!username || !email || !password) {
             return fail(400, { error: 'All fields are required' });
@@ -72,6 +79,11 @@ export const actions: Actions = {
             sameSite: 'lax',
             maxAge: 60 * 60 * 24 * 7
         });
+
+        // If verify token present, redirect to verification
+        if (verifyToken) {
+            throw redirect(303, `/verify?token=${verifyToken}`);
+        }
 
         throw redirect(303, '/');
     }
