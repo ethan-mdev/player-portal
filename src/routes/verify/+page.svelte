@@ -2,11 +2,10 @@
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import type { PageData } from './$types';
-    import { AUTH_SERVER_URL } from '$env/static/private';
-
-    const AUTH_SERVER = AUTH_SERVER_URL || 'http://localhost:8080'; 
 
     let { data }: { data: PageData } = $props();
+    
+    const AUTH_SERVER = data.authServerUrl;
     
     let loading = $state(true);
     let error = $state('');
